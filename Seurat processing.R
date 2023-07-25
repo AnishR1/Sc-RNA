@@ -55,4 +55,6 @@ Idents(counts_seurat)
 
 # Run UMAP
 counts_seurat <- RunUMAP(counts_seurat,dims = 1:15)
+
+# Plot the processed data
 DimPlot(counts_seurat, reduction = "umap", label = TRUE)
