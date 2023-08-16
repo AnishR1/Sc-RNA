@@ -1,5 +1,8 @@
+#Load required libraries
 library("Seurat")
 library("SeuratDisk")
+
+#Reading different sc-RNA file formats to SeuratData to process them
 rds <- readRDS("C:/Users/anish/Downloads/ependymal_cells.rds")
 H5 <- Read10X_h5("C:/Users/anish/Downloads/20k_PBMC_3p_HT_nextgem_Chromium_X_filtered_feature_bc_matrix.h5",use.names = TRUE, unique.features = TRUE)
 H5[1:10,1:10]
