@@ -1,18 +1,22 @@
+#Loading the required libraries
 library(Seurat)
 library(ExperimentHub)
 library(tidyverse)
 library(DESeq2)
 
+# Loading the data set as seurat object
 eh <- ExperimentHub()
 query(eh,"Kang")
 sce <- eh[["EH2259"]]
 sce_seurat <- as.Seurat(sce,data = NULL)
 
+# Filtering low quality genes
 sce_seurat$mitoPercent <- PercentageFeatureSet(sce_seurat,pattern = "^MT-")
 filtered_seurat <- subset(sce_seurat, subset = nFeature_originalexp >200 &
          nFeature_originalexp < 2500 &
          nCount_originalexp > 800 & mitoPercent < 5 & multiplets == "singlet")
 
+# Standard workflow steps
 filtered_seurat <- NormalizeData(filtered_seurat)
 filtered_seurat <- FindVariableFeatures(filtered_seurat)
 filtered_seurat <- ScaleData(filtered_seurat)
@@ -21,6 +25,7 @@ ElbowPlot(filtered_seurat)
 
 filtered_seurat <- RunUMAP(filtered_seurat,dims = 1:20)
 
+# Visualization
 cell_plot <- DimPlot(filtered_seurat,reduction = "umap", group.by = "cell",label = T)
 condition <- DimPlot(filtered_seurat,reduction = "umap", group.by = "stim")
 
@@ -28,6 +33,7 @@ cell_plot | condition
 
 filtered_seurat$id_condtion <- paste0(filtered_seurat$stim,filtered_seurat$ind)
 
+# Setting the assay and aggregation to sample level
 DefaultAssay(filtered_seurat)
 cts <- AggregateExpression(filtered_seurat,
                            group.by = c("cell","id_condtion"),
@@ -37,9 +43,11 @@ cts <- AggregateExpression(filtered_seurat,
 cts <- cts$originalexp
 cts.t <- as.data.frame(t(cts))
 
+# Assessing the values that are required to split
 splitrows <- gsub("_.*","",rownames(cts.t))
 cts.split <- split.data.frame(cts.t, f = factor(splitrows))
 
+# Fixing the columns and transposing resultants
 modified_split <- lapply(cts.split, function(x)
   {
   rownames(x) <- gsub('.*_(.*)',"\\1", rownames(x))
@@ -48,6 +56,7 @@ modified_split <- lapply(cts.split, function(x)
 
 counts_bcell <- modified_split$`B cells`
 
+# Run DESeq
 colData <- data.frame(samples = colnames(counts_bcell) )
 colData <- colData %>% 
   mutate(condition = ifelse(grepl("stim",samples),"Stimulated","Control")) %>%
