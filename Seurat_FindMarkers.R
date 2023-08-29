@@ -49,4 +49,5 @@ DimPlot(harmony_data,reduction = "umap",label = T)
 interferon_response <- FindMarkers(harmony_data,ident.1 = "CD16 Mono_CTRL", ident.2 = "CD16 Mono_STIM")
 head(interferon_response)
 
+# Visualization
 FeaturePlot(harmony_data,features = c("FCGR3A","AIF1","IFIT1"),split.by = "stim",min.cutoff = "q10")
